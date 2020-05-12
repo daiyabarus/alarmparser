@@ -1,2 +1,2 @@
 # alarmparser
-get alarm from mobatch
+Parsing Alarm from mobatch
