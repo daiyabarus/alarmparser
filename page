@@ -1,0 +1,18 @@
+ReportName Statistic Performance, Hour by Hour
+X counter A_Avail,B_IFHO,C_HOSR,D_SSSR,E_RRC,F_ERAB_SR,G_SAR,H_Prb_DL,I_Prb_UL,J_CQI_7,K_payload,L_1FDD_1TDD,M_DLCA_2CC,N_DLCA_3CC,O_RSSI 
+Y time h
+Z mo ,EUtranCell.DD=([^\s,=\t]+)
+precision 1
+
+ReportName Packetloss Performance, Hour by Hour
+X mo (Transport=1)
+#X mo ,EUtranCell.DD=([^\s,=\t]+)
+Y time d
+Z counter TN_PacketLossBB
+precision 4
+
+ReportName Interference Performance, Hour by Hour
+X counter ul_interference_pwr
+Y time d
+Z mo ,EUtranCell.DD=([^\s,=\t]+)
+precision 1

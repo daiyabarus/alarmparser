@@ -1,0 +1,464 @@
+#The formulas below are taken from the CPI DOCUMENT: 37/1553-HSC10550/1 and 47/1553-HSC10550/1.
+#Also the document http://cdmweb.ericsson.se/WEBLINK/ViewDocs?DocumentName=EAB%2FFJL-10%3A0850&Latest=true
+#0) More information on formula syntax: http://utran01.epa.ericsson.se/itkwiki/ViewWritersGuide/AppendixII
+#1) Any text starting with a '#' is treated as a comment and discarded
+#2) Each formula is split into the formula result variable name (part before the '=' sign) and the formula expression (the part after the '=' sign).
+#3) Any reference in the formula expression to a counter name of other formula name is replaced by a perl variable reference
+#4) The special names sum_<countername>, sum_time_<countername> and sum_mo_<countername> are replaced by a perl reference to variable containing counter aggregates
+#5) Each formula expression is then evaluated using perl 'eval'. This means that the syntax of the expressions is the same as that of perl - you can use any perl operators & functions.
+#6) The order in which the formulas are defined does not have any importance, a formula can refer to other formulas defined further down in the file
+#7) The formula names should not start with "pm"
+
+# 2.1 Accessibility (EUtranCellFDD/TDD)
+#Acc_RrcConnSetupSuccRate = 100 * pmRrcConnEstabSucc / (pmRrcConnEstabAtt - pmRrcConnEstabAttReatt)
+#Acc_S1SigEstabSuccRate = 100 * pmS1SigConnEstabSucc / pmS1SigConnEstabAtt
+#Acc_InitialErabSetupSuccRate = 100 * pmErabEstabSuccInit / pmErabEstabAttInit
+#Acc_InitialERabEstabSuccRate = Acc_RrcConnSetupSuccRate * Acc_S1SigEstabSuccRate  * Acc_InitialErabSetupSuccRate / 10000
+#Acc_AddedERabEstabSuccRate = 100 * pmErabEstabSuccAdded / pmErabEstabAttAdded
+#Acc_AddedERabEstabFailRateDueToMultipleLicense =  100 * pmErabEstabFailAddedLic / pmErabEstabAttAdded 
+#Acc_RrcConnSetupFailureRateDueToLackOfConnectedUsersLicense = 100 * pmRrcConnEstabFailLic / pmRrcConnEstabAtt 
+#Acc_RrcConnSetupRatioForMOData = 100 * pmRrcConnEstabAttMod/ pmRrcConnEstabAtt 
+#Acc_RrcConnSetupRatioForMOSignalling = 100 * pmRrcConnEstabAttMos/ pmRrcConnEstabAtt 
+#Acc_RrcConnSetupRatioForEmergency = 100 * pmRrcConnEstabAttEm/ pmRrcConnEstabAtt 
+#Acc_RrcConnSetupRatioForMobileTerminating = 100 * pmRrcConnEstabAttMta/ pmRrcConnEstabAtt 
+#Acc_RrcConnSetupRatioForHighPrioAccess = 100 * pmRrcConnEstabAttHpa/ pmRrcConnEstabAtt 
+#Acc_InitialERabEstabFailureRateDueToMultipleLicense = 100 * pmErabEstabFailInitLic / pmErabEstabAttInit 
+#Acc_InitialUEContextEstabSuccRate = 100 * pmUeCtxtEstabSucc/ pmUeCtxtEstabAtt 
+#Acc_PagingDiscardRate = 100 * pmPagDiscarded / pmPagReceived 
+#Acc_RandomAccessDecodingRate = 100 * pmRaSuccCbra / pmRaAttCbra 
+#Acc_RandomAccessMSG2Congestion = 100 * pmRaFailCbraMsg2Disc / pmRaAttCbra 
+1_Session_Setup_Success_Rate = 100 * (pmRrcConnEstabSucc / (pmRrcConnEstabAtt - pmRrcConnEstabAttReatt)) * (pmErabEstabSuccInit / pmErabEstabAttInit)
+1_Session_Setup_Success_Raten = 100 * (pmRrcConnEstabSucc / (pmRrcConnEstabAtt - pmRrcConnEstabAttReatt)) * ((pmErabEstabSuccInit+pmErabEstabSuccAdded)/(pmErabEstabAttInit+pmErabEstabAttAdded))* (pmS1SigConnEstabSucc/pmS1SigConnEstabAtt)
+D_SSSR = 100 * (pmRrcConnEstabSucc / (pmRrcConnEstabAtt - pmRrcConnEstabAttReatt)) * (pmErabEstabSuccInit / pmErabEstabAttInit)
+SSSRn = 100 * (pmRrcConnEstabSucc / (pmRrcConnEstabAtt - pmRrcConnEstabAttReatt)) * ((pmErabEstabSuccInit+pmErabEstabSuccAdded)/(pmErabEstabAttInit+pmErabEstabAttAdded))* (pmS1SigConnEstabSucc/pmS1SigConnEstabAtt)
+E_RRC = 100 * (pmRrcConnEstabSucc / (pmRrcConnEstabAtt - pmRrcConnEstabAttReatt))
+F_ERAB_SR=(pmErabEstabSuccInit/pmErabEstabAttInit)*100
+ERAB_SRn = ((pmErabEstabSuccInit+pmErabEstabSuccAdded)/(pmErabEstabAttInit+pmErabEstabAttAdded))*100
+S1Sig_SR = (pmS1SigConnEstabSucc/pmS1SigConnEstabAtt)*100
+Fail_RRC = (pmRrcConnEstabAtt - pmRrcConnEstabAttReatt) - pmRrcConnEstabSucc
+Fail_ERAB = (pmErabEstabAttInit+pmErabEstabAttAdded) - (pmErabEstabSuccInit+pmErabEstabSuccAdded)
+Fail_S1Sig = (pmS1SigConnEstabAtt - pmS1SigConnEstabSucc)
+pFailRRC = (Fail_RRC / (Fail_RRC + Fail_ERAB + Fail_S1Sig)) * 100 
+pFailERAB = (Fail_ERAB / (Fail_RRC + Fail_ERAB + Fail_S1Sig)) * 100
+pFailS1Sig = (Fail_S1Sig / (Fail_RRC + Fail_ERAB + Fail_S1Sig)) * 100
+
+# 2.2 Retainability (EUtranCellFDD/TDD)
+#Ret_ERabRelNormalENB         = pmErabRelNormalEnbAct / pmSessionTimeUe 
+#Ret_ERabRelMME               = pmErabRelMmeAct/pmSessionTimeUe 
+#Ret_ERabRelAbnormalENB       = pmErabRelAbnormalEnbAct / pmSessionTimeUe 
+#Ret_ERabRelAbnormalENBHoExec = pmErabRelAbnormalEnbActHo / pmSessionTimeUe 
+#Ret_ERabRelAbnormalENBHoPrep = pmErabRelAbnormalEnbActHpr / pmSessionTimeUe 
+#Ret_ERabRelAbnormalENBUeLost = pmErabRelAbnormalEnbActUeLost / pmSessionTimeUe 
+#Ret_ERabRelAbnormalENBTnFail = pmErabRelAbnormalEnbActTnFail / pmSessionTimeUe 
+#Ret_ERabRelAbnormalENBCdt    = pmErabRelAbnormalEnbActCdt / pmSessionTimeUe 
+#Ret_ErabRelAbnormal          = Ret_ERabRelMME + Ret_ERabRelAbnormalENB
+#Ret_ERabRetainability        = Ret_ERabRelAbnormalENB + Ret_ERabRelMME + Ret_ERabRelNormalENB
+#Ret_MinPerDrop               = 60 / Ret_ERabRetainability
+#Ret_ERabRetainabilityRate    = 100 * (pmErabRelAbnormalEnbAct + pmErabRelAbnormalMmeAct) / (pmErabRelMme + pmErabRelNormalEnb + pmErabRelAbnormalEnb) 
+Session_Abnormal_Release_New     = 100 * (pmErabRelAbnormalEnbAct + pmErabRelAbnormalMmeAct - pmErabRelMmeActEutra) / (pmErabRelAbnormalEnb + pmErabRelNormalEnb + pmErabRelMme - pmErabRelMmeActEutra)
+Session_Abnormal_Releasen   = 100 * (pmErabRelAbnormalEnbAct+pmErabRelAbnormalMmeAct) / (pmErabRelNormalEnb + pmErabRelAbnormalEnb + pmErabRelMme)   	
+G_SAR =  100 * pmErabRelAbnormalEnbAct / (pmErabRelNormalEnb + pmErabRelAbnormalEnb)
+SARn = 100 * (pmErabRelAbnormalEnbAct + pmErabRelAbnormalMmeAct - pmErabRelMmeActEutra) / (pmErabRelAbnormalEnb + pmErabRelNormalEnb + pmErabRelMme - pmErabRelMmeActEutra)
+SAR_MME= 100 * (pmErabRelAbnormalEnbAct+pmErabRelAbnormalMmeAct) / (pmErabRelNormalEnb + pmErabRelAbnormalEnb + pmErabRelMme)
+pAbnEnB = 100 * ( pmErabRelAbnormalEnbAct / ( pmErabRelAbnormalEnbAct+pmErabRelAbnormalMmeAct))
+pAbnMME = 100 * ( pmErabRelAbnormalMmeAct / ( pmErabRelAbnormalEnbAct+pmErabRelAbnormalMmeAct))
+Abn_dueto_TN = pmErabRelAbnormalEnbActTnFail
+Abn_dueto_RF = pmErabRelAbnormalEnbActUeLost
+Abn_dueto_HOExe = pmErabRelAbnormalEnbActHo
+Abn_dueto_HOPrep = pmErabRelAbnormalEnbActHpr
+Abn_dueto_CDT = pmErabRelAbnormalEnbActCdt
+#Ret_UeCtxtRelAbnormal          = (pmUeCtxtRelAbnormalEnbAct + pmUeCtxtRelMmeAct) / pmSessionTimeUe
+#Ret_UeCtxtRelAbnormal_2        = 100 * pmUeCtxtRelAbnormalEnbAct / (pmUeCtxtRelMme + pmUeCtxtRelNormalEnb + pmUeCtxtRelAbnormalEnb)
+#Ret_UeCtxtRelMME               = pmUeCtxtRelMmeAct / pmSessionTimeUe
+#Ret_UeCtxtRelAbnormalENB       = pmUeCtxtRelAbnormalEnbAct / pmSessionTimeUe 
+#Ret_UeCtxtRelAbnormalENBHoExec = pmUeCtxtRelAbnormalEnbActHo / pmSessionTimeUe 
+#Ret_UeCtxtRelAbnormalENBUeLost = pmUeCtxtRelAbnormalEnbActUeLost / pmSessionTimeUe 
+#Ret_UeCtxtRelAbnormalENBTnFail = pmUeCtxtRelAbnormalEnbActTnFail / pmSessionTimeUe 
+#Ret_UeCtxtRelAbnormalENBCdt    = pmUeCtxtRelAbnormalEnbActCdt / pmSessionTimeUe 
+
+#Ret_ERabDrop = 100 * (pmErabRelAbnormalEnbAct + pmErabRelMmeAct) / (pmErabEstabSuccInit + pmErabEstabSuccAdded)
+#Ret_ERabDropENB = 100 * pmErabRelAbnormalEnbAct / (pmErabEstabSuccInit + pmErabEstabSuccAdded)
+#Ret_ERabDropMME = 100 * pmErabRelMmeAct / (pmErabEstabSuccInit + pmErabEstabSuccAdded)
+
+#Ratio of UE Ctxt Drop per Handover failures pmUeCtxtRelAbnormalEnbActHo/(pmHoExecAttLteIntraF - pmHoExecSuccLteIntraF) How many of the failed handovers lead to a UE Context drop. 
+#Ratio of  UE Context drops and Abnormal UE Context Releases (pmUeCtxtRelAbnormalEnbAct+pmUeCtxtMmeAct)/(pmUeCtxtRelAbnormalEnb+pmUeCtxtMme) 
+#Ratio of  eNB initated UE Context drops and Abnormal UE Context Releases (pmUeCtxtRelAbnormalEnbAct)/(pmUeCtxtRelAbnormalEnb) 
+#Ratio of  MME initated UE Context drops and Abnormal UE Context Releases (pmUeCtxtMmeAct)/(pmUeCtxtMme) 
+
+
+# 2.3 Integrity (EUtranCellFDD/TDD)
+Payload_Total= (pmPdcpVolDlDrb + pmPdcpVolDlSrb + pmPdcpVolUlDrb + pmPdcpVolUlSrb) / 8000                                                    
+6_Payload_Total= (pmPdcpVolDlDrb + pmPdcpVolDlSrb + pmPdcpVolUlDrb + pmPdcpVolUlSrb) / 8000
+K_payload= (pmPdcpVolDlDrb + pmPdcpVolDlSrb + pmPdcpVolUlDrb + pmPdcpVolUlSrb) / 8000
+cell_THP_DL = pmPdcpVolDlDrb/(pmSchedActivityCellDl/1000)
+cell_THP_UL = pmPdcpVolUlDrb/(pmSchedActivityCellUl/1000)
+user_THP_DL = (pmPdcpVolDlDrb - pmPdcpVolDlDrbLastTTI)/(pmUeThpTimeDl/1000)
+user_THP_UL = pmUeThpVolUl/(pmUeThpTimeUl/1000)
+user_max = pmLicConnectedUsersMax
+user_avg = pmLicConnectedUsersLevSum/pmLicConnectedUsersLevSamp
+Int_RadioRecInterferencePwr_fW =  WeightedAverage(pmRadioRecInterferencePwr,[0.79432,0.89716,1.12946,1.42191,1.79008,2.25357,2.83708,3.57167,4.49647,5.66072,11.07925,27.82982,69.90536,175.59432,441.07,630.95])
+ul_interference_pwr = 10*log10(Int_RadioRecInterferencePwr_fW / 1000000000000)
+#UE_DL_Packet_Loss=100*(pmPdcpPktDiscDlPelr+pmPdcpPktDiscDlHo)/(pmPdcpPktDiscDlPelr+pmPdcpPktDiscDlHo+pmPdcpPktTransDl)
+UE_DL_Packet_Loss=100 * (pmPdcpPktDiscDlPelr + pmPdcpPktDiscDlPelrUu + pmPdcpPktDiscDlHo + pmPdcpPktDiscDlEth) / (pmPdcpPktReceivedDl - pmPdcpPktFwdDl + pmPdcpPktDiscDlEth)
+UE_UL_Packet_Loss=100*(pmPdcpPktLostUl/(pmPdcpPktLostUl+pmPdcpPktReceivedUl))
+DL_Latency = (pmPdcpLatTimeDl/pmPdcpLatPktTransDl)
+Avg_SimActUE_DL = pmActiveUeDlSum / pmSchedActivityCellDl
+Avg_SimActUE_UL = pmActiveUeUlSum / pmSchedActivityCellUl
+Avg_NumSim_ERAB = pmErabLevSum / pmErabLevSamp
+#Int_DlThroughput_kbps      = 1000 * (pmPdcpVolDlDrb - pmPdcpVolDlDrbLastTTI + pmPdcpVolDlDrbTransUm) / pmUeThpTimeDl
+#Int_UlThroughput_kbps      = 1000 * pmUeThpVolUl / pmUeThpTimeUl
+#Int_DlLatency         = pmPdcpLatTimeDl / pmPdcpLatPktTransDl
+#Int_DlPacketErrorLoss = 100 * (pmPdcpPktDiscDlPelr + pmPdcpPktDiscDlPelrUu + pmPdcpPktDiscDlHo + pmPdcpPktDiscDlEth) / (pmPdcpPktReceivedDl - pmPdcpPktFwdDl + pmPdcpPktDiscDlEth)
+#Int_UlPacketLoss      = 100 * pmPdcpPktLostUl / ( pmPdcpPktLostUl + pmPdcpPktReceivedUl)
+#
+#Int_ActiveUEsDl                      = pmActiveUeDlSum / pmSchedActivityCellDl 
+#Int_ActiveDRBsDl                     = pmActiveDrbDlSum / pmSchedActivityCellDl 
+#Int_ActiveUEsUl                      = pmActiveUeUlSum / pmSchedActivityCellUl 
+#Int_ActiveDRBsUl                     = pmActiveDrbUlSum / pmSchedActivityCellUl 
+#Int_MacHarqDlSuccRate                = 100 * (pmMacHarqDlAckQpsk + pmMacHarqDlAck16qam + pmMacHarqDlAck64qam) / (pmMacHarqDlAckQpsk + pmMacHarqDlNackQpsk + pmMacHarqDlAck16qam + pmMacHarqDlNack16qam + pmMacHarqDlAck64qam + pmMacHarqDlNack64qam ) 
+#Int_MacHarqUlSuccRate                = 100 * (pmMacHarqUlSuccQpsk + pmMacHarqUlSucc16qam ) / (pmMacHarqUlSuccQpsk + pmMacHarqUlSucc16qam + pmMacHarqUlFailQpsk + pmMacHarqUlFail16qam) 
+#Int_RlcArqDlSuccRate                 = 100 * pmRlcArqDlAck / (pmRlcArqDlAck + pmRlcArqDlNack)
+#Int_RlcArqUlSuccRate                 = 100 * pmRlcArqUlAck / (pmRlcArqUlAck+pmRlcArqUlNack)
+#Int_DlRadioThroughput                = pmRadioThpVolDl / pmRadioThpResDl 
+#Int_UlRadioThroughput                = pmRadioThpVolUl / pmRadioThpResUl 
+#Int_DlRadioMeasCqiDistr              = pmRadioUeRepCqiDistr 
+#Int_DlRadioMeasTxRankDistr           = pmRadioTxRankDistr 
+#Int_DlRadioMeasUeReportedTxRankDistr = pmRadioUeRepRankDistr   
+#Int_AverageDlRlcDelay                = pmRlcDelayTimeDl / pmRlcDelayPktTransDl 
+#Int_AverageDlMacDelay                = pmMacDelayTimeDl / (pmMacHarqDlAckQpsk + pmMacHarqDlAck16qam + pmMacHarqDlAck64qam) 
+#Int_DlPacketLossDueToHo              = pmPdcpPktDiscDlHo/ pmPdcpPktReceivedDl 
+#Int_RadioRecInterferencePwr_fW =  WeightedAverage(pmRadioRecInterferencePwr,[0.79432,0.89716,1.12946,1.42191,1.79008,2.25357,2.83708,3.57167,4.49647,5.66072,11.07925,27.82982,69.90536,175.59432,441.07,630.95])
+O_RSSI = 10*log10(Int_RadioRecInterferencePwr_fW / 1000000000000)
+RSSI = 10*log10(Int_RadioRecInterferencePwr_fW / 1000000000000)
+#Int_RadioRecInterferencePucchPwr_fW =  WeightedAverage(pmRadioRecInterferencePwrPucch,[0.79432,0.89716,1.12946,1.42191,1.79008,2.25357,2.83708,3.57167,4.49647,5.66072,11.07925,27.82982,69.90536,175.59432,441.07,630.95])
+#Int_RadioRecInterferencePucchPwr = 10*log10(Int_RadioRecInterferencePucchPwr_fW / 1000000000000)
+#Int_RadioUeRepCqiDistr = WeightedAverage(pmRadioUeRepCqiDistr,[0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15])
+#Int_SinrPucchDistr = WeightedAverage(pmSinrPucchDistr,[-15,-13.5,-10.5,-7.5,-4.5,-1.5,1.5,3])
+#Int_SinrPuschDistr = WeightedAverage(pmSinrPuschDistr,[-5,-3.5,0,4,8,12,15.5,17])
+Prb_Util_Dl = WeightedAverage(pmPrbUtilDl,[10,20,30,40,50,60,70,80,90,100])
+Prb_Util_Ul = WeightedAverage(pmPrbUtilUl,[10,20,30,40,50,60,70,80,90,100])
+SinrPucch = WeightedAverage(pmSinrPucchDistr,[-15,-13.5,-10.5,-7.5,-4.5,-1.5,1.5,3])
+SinrPusch = WeightedAverage(pmSinrPuschDistr,[-5,-3.5,0,4,8,12,15.5,17])
+UeCqi_Distr = WeightedAverage(pmRadioUeRepCqiDistr,[0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15])
+MCS_DL_QPSK = 100*(pmMacHarqDlAckQpsk/(pmMacHarqDlAckQpsk+pmMacHarqDlAck16qam+pmMacHarqDlAck64qam+pmMacHarqDlAck256qam))
+MCS_DL_QPSK_higher = 100*((pmMacHarqDlAck16qam+pmMacHarqDlAck64qam+pmMacHarqDlAck256qam)/(pmMacHarqDlAckQpsk+pmMacHarqDlAck16qam+pmMacHarqDlAck64qam+pmMacHarqDlAck256qam))
+MCS_DL_16QAM = 100*(pmMacHarqDlAck16qam/(pmMacHarqDlAckQpsk+pmMacHarqDlAck16qam+pmMacHarqDlAck64qam+pmMacHarqDlAck256qam))
+MCS_DL_64QAM = 100*(pmMacHarqDlAck64qam/(pmMacHarqDlAckQpsk+pmMacHarqDlAck16qam+pmMacHarqDlAck64qam+pmMacHarqDlAck256qam))
+MCS_DL_256QAM = 100*(pmMacHarqDlAck256qam/(pmMacHarqDlAckQpsk+pmMacHarqDlAck16qam+pmMacHarqDlAck64qam+pmMacHarqDlAck256qam))
+MCS_UL_64QAM = 100*(pmMacHarqUlSucc64Qam/(pmMacHarqUlSuccQpsk+pmMacHarqUlSucc16qam+pmMacHarqUlSucc64Qam))
+MCS_UL_16QAM = 100*(pmMacHarqUlSucc16qam/(pmMacHarqUlSuccQpsk+pmMacHarqUlSucc16qam+pmMacHarqUlSucc64Qam))
+MCS_UL_QPSK = 100*(pmMacHarqUlSuccQpsk/(pmMacHarqUlSuccQpsk+pmMacHarqUlSucc16qam+pmMacHarqUlSucc64Qam))
+H_Prb_DL = pmPrbAvailDl/900000
+I_Prb_UL = pmPrbAvailUl/900000
+
+#Packet Error Loss rate in RLC/PDCP for packets where no transmission have started    pmPdcpPktDiscDlPelr/ pmPdcpPktReceivedDl 
+#Packet Uu Loss rate in RLC/PDCP for packets where transmission have started    pmPdcpPktDiscDlPelrUu/ pmPdcpPktReceivedDl 
+#UL radio measurement, N+I distribution   pmRadioRecInterferencePwr 
+#UL radio measurement, Power restriction ratio for uplink transport blocks   pmRadioTbsPwrRestricted /pmRadioTbsPwrUnrestricted 
+
+#Interference per PRB in dBm
+001_InterfPwrPrb = 10*log10(pmRadioRecInterferencePwrPrb1 * .00000000000005684341886080801486968994140625 / (900000 / 40) ) 
+002_InterfPwrPrb = 10*log10(pmRadioRecInterferencePwrPrb2 * .00000000000005684341886080801486968994140625 / (900000 / 40) ) 
+003_InterfPwrPrb = 10*log10(pmRadioRecInterferencePwrPrb3 * .00000000000005684341886080801486968994140625 / (900000 / 40) ) 
+004_InterfPwrPrb = 10*log10(pmRadioRecInterferencePwrPrb4 * .00000000000005684341886080801486968994140625 / (900000 / 40) ) 
+005_InterfPwrPrb = 10*log10(pmRadioRecInterferencePwrPrb5 * .00000000000005684341886080801486968994140625 / (900000 / 40) ) 
+006_InterfPwrPrb = 10*log10(pmRadioRecInterferencePwrPrb6 * .00000000000005684341886080801486968994140625 / (900000 / 40) ) 
+007_InterfPwrPrb = 10*log10(pmRadioRecInterferencePwrPrb7 * .00000000000005684341886080801486968994140625 / (900000 / 40) ) 
+008_InterfPwrPrb = 10*log10(pmRadioRecInterferencePwrPrb8 * .00000000000005684341886080801486968994140625 / (900000 / 40) ) 
+009_InterfPwrPrb = 10*log10(pmRadioRecInterferencePwrPrb9 * .00000000000005684341886080801486968994140625 / (900000 / 40) ) 
+010_InterfPwrPrb = 10*log10(pmRadioRecInterferencePwrPrb10 * .00000000000005684341886080801486968994140625 / (900000 / 40) ) 
+011_InterfPwrPrb = 10*log10(pmRadioRecInterferencePwrPrb11 * .00000000000005684341886080801486968994140625 / (900000 / 40) ) 
+012_InterfPwrPrb = 10*log10(pmRadioRecInterferencePwrPrb12 * .00000000000005684341886080801486968994140625 / (900000 / 40) ) 
+013_InterfPwrPrb = 10*log10(pmRadioRecInterferencePwrPrb13 * .00000000000005684341886080801486968994140625 / (900000 / 40) ) 
+014_InterfPwrPrb = 10*log10(pmRadioRecInterferencePwrPrb14 * .00000000000005684341886080801486968994140625 / (900000 / 40) ) 
+015_InterfPwrPrb = 10*log10(pmRadioRecInterferencePwrPrb15 * .00000000000005684341886080801486968994140625 / (900000 / 40) ) 
+016_InterfPwrPrb = 10*log10(pmRadioRecInterferencePwrPrb16 * .00000000000005684341886080801486968994140625 / (900000 / 40) ) 
+017_InterfPwrPrb = 10*log10(pmRadioRecInterferencePwrPrb17 * .00000000000005684341886080801486968994140625 / (900000 / 40) ) 
+018_InterfPwrPrb = 10*log10(pmRadioRecInterferencePwrPrb18 * .00000000000005684341886080801486968994140625 / (900000 / 40) ) 
+019_InterfPwrPrb = 10*log10(pmRadioRecInterferencePwrPrb19 * .00000000000005684341886080801486968994140625 / (900000 / 40) ) 
+020_InterfPwrPrb = 10*log10(pmRadioRecInterferencePwrPrb20 * .00000000000005684341886080801486968994140625 / (900000 / 40) ) 
+021_InterfPwrPrb = 10*log10(pmRadioRecInterferencePwrPrb21 * .00000000000005684341886080801486968994140625 / (900000 / 40) ) 
+022_InterfPwrPrb = 10*log10(pmRadioRecInterferencePwrPrb22 * .00000000000005684341886080801486968994140625 / (900000 / 40) ) 
+023_InterfPwrPrb = 10*log10(pmRadioRecInterferencePwrPrb23 * .00000000000005684341886080801486968994140625 / (900000 / 40) ) 
+024_InterfPwrPrb = 10*log10(pmRadioRecInterferencePwrPrb24 * .00000000000005684341886080801486968994140625 / (900000 / 40) ) 
+025_InterfPwrPrb = 10*log10(pmRadioRecInterferencePwrPrb25 * .00000000000005684341886080801486968994140625 / (900000 / 40) ) 
+026_InterfPwrPrb = 10*log10(pmRadioRecInterferencePwrPrb26 * .00000000000005684341886080801486968994140625 / (900000 / 40) ) 
+027_InterfPwrPrb = 10*log10(pmRadioRecInterferencePwrPrb27 * .00000000000005684341886080801486968994140625 / (900000 / 40) ) 
+028_InterfPwrPrb = 10*log10(pmRadioRecInterferencePwrPrb28 * .00000000000005684341886080801486968994140625 / (900000 / 40) ) 
+029_InterfPwrPrb = 10*log10(pmRadioRecInterferencePwrPrb29 * .00000000000005684341886080801486968994140625 / (900000 / 40) ) 
+030_InterfPwrPrb = 10*log10(pmRadioRecInterferencePwrPrb30 * .00000000000005684341886080801486968994140625 / (900000 / 40) ) 
+031_InterfPwrPrb = 10*log10(pmRadioRecInterferencePwrPrb31 * .00000000000005684341886080801486968994140625 / (900000 / 40) ) 
+032_InterfPwrPrb = 10*log10(pmRadioRecInterferencePwrPrb32 * .00000000000005684341886080801486968994140625 / (900000 / 40) ) 
+033_InterfPwrPrb = 10*log10(pmRadioRecInterferencePwrPrb33 * .00000000000005684341886080801486968994140625 / (900000 / 40) ) 
+034_InterfPwrPrb = 10*log10(pmRadioRecInterferencePwrPrb34 * .00000000000005684341886080801486968994140625 / (900000 / 40) ) 
+035_InterfPwrPrb = 10*log10(pmRadioRecInterferencePwrPrb35 * .00000000000005684341886080801486968994140625 / (900000 / 40) ) 
+036_InterfPwrPrb = 10*log10(pmRadioRecInterferencePwrPrb36 * .00000000000005684341886080801486968994140625 / (900000 / 40) ) 
+037_InterfPwrPrb = 10*log10(pmRadioRecInterferencePwrPrb37 * .00000000000005684341886080801486968994140625 / (900000 / 40) ) 
+038_InterfPwrPrb = 10*log10(pmRadioRecInterferencePwrPrb38 * .00000000000005684341886080801486968994140625 / (900000 / 40) ) 
+039_InterfPwrPrb = 10*log10(pmRadioRecInterferencePwrPrb39 * .00000000000005684341886080801486968994140625 / (900000 / 40) ) 
+040_InterfPwrPrb = 10*log10(pmRadioRecInterferencePwrPrb40 * .00000000000005684341886080801486968994140625 / (900000 / 40) ) 
+041_InterfPwrPrb = 10*log10(pmRadioRecInterferencePwrPrb41 * .00000000000005684341886080801486968994140625 / (900000 / 40) ) 
+042_InterfPwrPrb = 10*log10(pmRadioRecInterferencePwrPrb42 * .00000000000005684341886080801486968994140625 / (900000 / 40) ) 
+043_InterfPwrPrb = 10*log10(pmRadioRecInterferencePwrPrb43 * .00000000000005684341886080801486968994140625 / (900000 / 40) ) 
+044_InterfPwrPrb = 10*log10(pmRadioRecInterferencePwrPrb44 * .00000000000005684341886080801486968994140625 / (900000 / 40) ) 
+045_InterfPwrPrb = 10*log10(pmRadioRecInterferencePwrPrb45 * .00000000000005684341886080801486968994140625 / (900000 / 40) ) 
+046_InterfPwrPrb = 10*log10(pmRadioRecInterferencePwrPrb46 * .00000000000005684341886080801486968994140625 / (900000 / 40) ) 
+047_InterfPwrPrb = 10*log10(pmRadioRecInterferencePwrPrb47 * .00000000000005684341886080801486968994140625 / (900000 / 40) ) 
+048_InterfPwrPrb = 10*log10(pmRadioRecInterferencePwrPrb48 * .00000000000005684341886080801486968994140625 / (900000 / 40) ) 
+049_InterfPwrPrb = 10*log10(pmRadioRecInterferencePwrPrb49 * .00000000000005684341886080801486968994140625 / (900000 / 40) ) 
+050_InterfPwrPrb = 10*log10(pmRadioRecInterferencePwrPrb50 * .00000000000005684341886080801486968994140625 / (900000 / 40) )
+051_InterfPwrPrb = 10*log10(pmRadioRecInterferencePwrPrb51 * .00000000000005684341886080801486968994140625 / (900000 / 40) ) 
+052_InterfPwrPrb = 10*log10(pmRadioRecInterferencePwrPrb52 * .00000000000005684341886080801486968994140625 / (900000 / 40) ) 
+053_InterfPwrPrb = 10*log10(pmRadioRecInterferencePwrPrb53 * .00000000000005684341886080801486968994140625 / (900000 / 40) ) 
+054_InterfPwrPrb = 10*log10(pmRadioRecInterferencePwrPrb54 * .00000000000005684341886080801486968994140625 / (900000 / 40) ) 
+055_InterfPwrPrb = 10*log10(pmRadioRecInterferencePwrPrb55 * .00000000000005684341886080801486968994140625 / (900000 / 40) ) 
+056_InterfPwrPrb = 10*log10(pmRadioRecInterferencePwrPrb56 * .00000000000005684341886080801486968994140625 / (900000 / 40) ) 
+057_InterfPwrPrb = 10*log10(pmRadioRecInterferencePwrPrb57 * .00000000000005684341886080801486968994140625 / (900000 / 40) ) 
+058_InterfPwrPrb = 10*log10(pmRadioRecInterferencePwrPrb58 * .00000000000005684341886080801486968994140625 / (900000 / 40) ) 
+059_InterfPwrPrb = 10*log10(pmRadioRecInterferencePwrPrb59 * .00000000000005684341886080801486968994140625 / (900000 / 40) ) 
+060_InterfPwrPrb = 10*log10(pmRadioRecInterferencePwrPrb60 * .00000000000005684341886080801486968994140625 / (900000 / 40) ) 
+061_InterfPwrPrb = 10*log10(pmRadioRecInterferencePwrPrb61 * .00000000000005684341886080801486968994140625 / (900000 / 40) ) 
+062_InterfPwrPrb = 10*log10(pmRadioRecInterferencePwrPrb62 * .00000000000005684341886080801486968994140625 / (900000 / 40) ) 
+063_InterfPwrPrb = 10*log10(pmRadioRecInterferencePwrPrb63 * .00000000000005684341886080801486968994140625 / (900000 / 40) ) 
+064_InterfPwrPrb = 10*log10(pmRadioRecInterferencePwrPrb64 * .00000000000005684341886080801486968994140625 / (900000 / 40) ) 
+065_InterfPwrPrb = 10*log10(pmRadioRecInterferencePwrPrb65 * .00000000000005684341886080801486968994140625 / (900000 / 40) ) 
+066_InterfPwrPrb = 10*log10(pmRadioRecInterferencePwrPrb66 * .00000000000005684341886080801486968994140625 / (900000 / 40) ) 
+067_InterfPwrPrb = 10*log10(pmRadioRecInterferencePwrPrb67 * .00000000000005684341886080801486968994140625 / (900000 / 40) ) 
+068_InterfPwrPrb = 10*log10(pmRadioRecInterferencePwrPrb68 * .00000000000005684341886080801486968994140625 / (900000 / 40) ) 
+069_InterfPwrPrb = 10*log10(pmRadioRecInterferencePwrPrb69 * .00000000000005684341886080801486968994140625 / (900000 / 40) ) 
+070_InterfPwrPrb = 10*log10(pmRadioRecInterferencePwrPrb70 * .00000000000005684341886080801486968994140625 / (900000 / 40) ) 
+071_InterfPwrPrb = 10*log10(pmRadioRecInterferencePwrPrb71 * .00000000000005684341886080801486968994140625 / (900000 / 40) ) 
+072_InterfPwrPrb = 10*log10(pmRadioRecInterferencePwrPrb72 * .00000000000005684341886080801486968994140625 / (900000 / 40) ) 
+073_InterfPwrPrb = 10*log10(pmRadioRecInterferencePwrPrb73 * .00000000000005684341886080801486968994140625 / (900000 / 40) ) 
+074_InterfPwrPrb = 10*log10(pmRadioRecInterferencePwrPrb74 * .00000000000005684341886080801486968994140625 / (900000 / 40) ) 
+075_InterfPwrPrb = 10*log10(pmRadioRecInterferencePwrPrb75 * .00000000000005684341886080801486968994140625 / (900000 / 40) )
+076_InterfPwrPrb = 10*log10(pmRadioRecInterferencePwrPrb76 * .00000000000005684341886080801486968994140625 / (900000 / 40) )
+077_InterfPwrPrb = 10*log10(pmRadioRecInterferencePwrPrb77 * .00000000000005684341886080801486968994140625 / (900000 / 40) )
+078_InterfPwrPrb = 10*log10(pmRadioRecInterferencePwrPrb78 * .00000000000005684341886080801486968994140625 / (900000 / 40) )
+079_InterfPwrPrb = 10*log10(pmRadioRecInterferencePwrPrb79 * .00000000000005684341886080801486968994140625 / (900000 / 40) )
+080_InterfPwrPrb = 10*log10(pmRadioRecInterferencePwrPrb80 * .00000000000005684341886080801486968994140625 / (900000 / 40) )
+081_InterfPwrPrb = 10*log10(pmRadioRecInterferencePwrPrb81 * .00000000000005684341886080801486968994140625 / (900000 / 40) )
+082_InterfPwrPrb = 10*log10(pmRadioRecInterferencePwrPrb82 * .00000000000005684341886080801486968994140625 / (900000 / 40) )
+083_InterfPwrPrb = 10*log10(pmRadioRecInterferencePwrPrb83 * .00000000000005684341886080801486968994140625 / (900000 / 40) )
+084_InterfPwrPrb = 10*log10(pmRadioRecInterferencePwrPrb84 * .00000000000005684341886080801486968994140625 / (900000 / 40) )
+085_InterfPwrPrb = 10*log10(pmRadioRecInterferencePwrPrb85 * .00000000000005684341886080801486968994140625 / (900000 / 40) )
+086_InterfPwrPrb = 10*log10(pmRadioRecInterferencePwrPrb86 * .00000000000005684341886080801486968994140625 / (900000 / 40) )
+087_InterfPwrPrb = 10*log10(pmRadioRecInterferencePwrPrb87 * .00000000000005684341886080801486968994140625 / (900000 / 40) )
+088_InterfPwrPrb = 10*log10(pmRadioRecInterferencePwrPrb88 * .00000000000005684341886080801486968994140625 / (900000 / 40) )
+089_InterfPwrPrb = 10*log10(pmRadioRecInterferencePwrPrb89 * .00000000000005684341886080801486968994140625 / (900000 / 40) )
+090_InterfPwrPrb = 10*log10(pmRadioRecInterferencePwrPrb90 * .00000000000005684341886080801486968994140625 / (900000 / 40) )
+091_InterfPwrPrb = 10*log10(pmRadioRecInterferencePwrPrb91 * .00000000000005684341886080801486968994140625 / (900000 / 40) )
+092_InterfPwrPrb = 10*log10(pmRadioRecInterferencePwrPrb92 * .00000000000005684341886080801486968994140625 / (900000 / 40) )
+093_InterfPwrPrb = 10*log10(pmRadioRecInterferencePwrPrb93 * .00000000000005684341886080801486968994140625 / (900000 / 40) )
+094_InterfPwrPrb = 10*log10(pmRadioRecInterferencePwrPrb94 * .00000000000005684341886080801486968994140625 / (900000 / 40) )
+095_InterfPwrPrb = 10*log10(pmRadioRecInterferencePwrPrb95 * .00000000000005684341886080801486968994140625 / (900000 / 40) )
+096_InterfPwrPrb = 10*log10(pmRadioRecInterferencePwrPrb96 * .00000000000005684341886080801486968994140625 / (900000 / 40) )
+097_InterfPwrPrb = 10*log10(pmRadioRecInterferencePwrPrb97 * .00000000000005684341886080801486968994140625 / (900000 / 40) )
+098_InterfPwrPrb = 10*log10(pmRadioRecInterferencePwrPrb98 * .00000000000005684341886080801486968994140625 / (900000 / 40) )
+099_InterfPwrPrb = 10*log10(pmRadioRecInterferencePwrPrb99 * .00000000000005684341886080801486968994140625 / (900000 / 40) )
+100_InterfPwrPrb = 10*log10(pmRadioRecInterferencePwrPrb100 * .00000000000005684341886080801486968994140625 / (900000 / 40) )
+
+# 2.4 Mobility (EUtranRelation)
+#Mob_HoPrepSuccRate   = 100 * (pmHoPrepSuccLteIntraF + pmHoPrepSuccLteInterF) / (pmHoPrepAttLteIntraF + pmHoPrepAttLteInterF)
+#Mob_HoExecSuccRate   = 100 * (pmHoExeSuccLteIntraF + pmHoExeSuccLteInterF) / (pmHoExeAttLteIntraF + pmHoExeAttLteInterF)
+#Mob_MobilitySuccRate = Mob_HoPrepSuccRate * Mob_HoExecSuccRate / 100
+#Mob_HoPrepRejInLicConnUsers = pmHoPrepRejInLicConnUsers    
+#Mob_HoPrepRejInLicMob = pmHoPrepRejInLicMob    
+#Mob_HoPrepRejInLicMultiErab = pmHoPrepRejInLicMultiErab  
+#Mob_AnrNeighbrelAdd = pmAnrNeighbrelAdd 
+#Mob_AnrNeighbrelRemove = pmAnrNeighbrelRem
+#Mob_SessionContinuityRel = pmUeCtxtRelSCCdma + pmUeCtxtRelSCEUtra + pmUeCtxtRelSCWcdma 
+#Mob_RatioOfReceivedMeasurementReportsThatLeadToHandoverPreparation = pmBestCellEvalReport / pmHoPrepAttLteIntraF 
+
+#Mob_IRAT_Redirect = 100 * (pmUeCtxtRelSCCdma + pmUeCtxtRelSCGsm + pmUeCtxtRelSCWcdma) / pmUeCtxtEstabSucc
+
+3_HO_Intra_SR = 100 * pmHoExeSuccLteIntraF / pmHoExeAttLteIntraF 
+4_HO_IF_SR = 100 * pmHoExeSuccLteInterF/pmHoExeAttLteInterF 
+C_HOSR = 100 * pmHoExeSuccLteIntraF / pmHoExeAttLteIntraF
+B_IFHO = 100*(pmHoExeSuccLteInterF/pmHoExeAttLteInterF) 
+PSHO_SR = 100 * ((pmHoPrepSucc/pmHoPrepAtt)*(pmHoExeSucc/pmHoExeAtt))
+LB_SR = 100 * ((pmHoPrepSuccLb/pmHoPrepAttLb)*(pmHoExeSuccLb/pmHoExeAttLb))
+IFLB_SR = 100 * ((pmHoPrepSuccLteInterFLb / pmHoPrepAttLteInterFLb) * (pmHoExeSuccLteInterFLb/pmHoExeAttLteInterFLb)) 
+csfb_to_3g = pmUeCtxtRelCsfbWcdma + pmUeCtxtRelCsfbWcdmaEm
+csfb_to_2g = pmUeCtxtRelCsfbGsm + pmUeCtxtRelCsfbGsmEm
+HO_Attempt = pmHoExeAttLteIntraF
+HO_Success = pmHoExeSuccLteIntraF
+Fail_HO = pmHoExeAttLteIntraF-pmHoExeSuccLteIntraF
+Percent_Fail_HO = ((pmHoExeAttLteIntraF-pmHoExeSuccLteIntraF)/pmHoExeAttLteIntraF)*100
+HO_tooLate = pmHoTooLateHoIntraF
+HO_tooEarly = pmHoTooEarlyHoIntraF
+HO_wrongCell = pmHoWrongCellIntraF
+HO_Prep_Att = pmHoPrepAttLteIntraF
+HO_Exe_Att =  pmHoExeAttLteIntraF
+HO_Exe_Succ  =  pmHoExeSuccLteIntraF
+HO_Prep_Fail = pmHoPrepAttLteIntraF-pmHoPrepSuccLteIntraF
+HO_Prep_Succ = pmHoPrepSuccLteIntraF
+HO_Prep_Fail_Rate = ((pmHoPrepAttLteIntraF-pmHoPrepSuccLteIntraF)/pmHoPrepAttLteIntraF)*100
+HO_Prep_SR = 100 * (pmHoPrepSuccLteIntraF /  pmHoPrepAttLteIntraF)
+HO_Exe_SR =  100 * (pmHoExeSuccLteIntraF / pmHoExeAttLteIntraF)
+IFHO_Att = pmHoExeAttLteInterF
+IFHO_Succ = pmHoExeSuccLteInterF
+Fail_IFHO = pmHoExeAttLteInterF-pmHoExeSuccLteInterF
+Percent_Fail_IFHO = ((pmHoExeAttLteInterF-pmHoExeSuccLteInterF)/pmHoExeAttLteInterF)*100
+IFHO_Prep_Att = pmHoPrepAttLteInterF
+IFHO_Exe_Att = pmHoExeAttLteInterF
+IFHO_Prep_Succ = pmHoPrepSuccLteInterF
+IFHO_Exe_Succ  = pmHoExeSuccLteInterF
+IFHO_Prep_Fail = pmHoPrepAttLteInterF-pmHoPrepSuccLteInterF
+IFHO_Prep_Fail_Rate = ((pmHoPrepAttLteInterF-pmHoPrepSuccLteInterF)/pmHoPrepAttLteInterF)*100
+IFHO_Prep_SR = 100 * (pmHoPrepSuccLteInterF /  pmHoPrepAttLteInterF)
+IFHO_Exe_SR =  100 * (pmHoExeSuccLteInterF / pmHoExeAttLteInterF)
+IFHO_tooLate = pmHoTooLateHoInterF
+IFHO_tooEarly = pmHoTooEarlyHoInterF
+IFHO_wrongCell = pmHoWrongCellInterF
+PSHO_Prep_Att = pmHoPrepAtt
+PSHO_Prep_Succ = pmHoPrepSucc
+PSHO_Prep_Fail = pmHoPrepAtt - pmHoPrepSucc
+PSHO_Prep_Fail_Rate = ((pmHoPrepAtt - pmHoPrepSucc)/pmHoPrepAtt)*100
+PSHO_Prep_SR = (pmHoPrepSucc/pmHoPrepAtt)*100
+PSHO_Exe_Att = pmHoExeAtt
+PSHO_Exe_Succ = pmHoExeSucc
+PSHO_Exe_Fail = pmHoExeAtt - pmHoExeSucc
+PSHO_Exe_Fail_Rate = ((pmHoExeAtt - pmHoExeSucc)/pmHoExeAtt)*100
+PSHO_Exe_SR = (pmHoExeSucc/pmHoExeAtt)*100
+PSHOPrepAtt_LB = pmHoPrepAttLb
+PSHOPrepSucc_LB = pmHoPrepSuccLb
+PSHOPrepFail_LB = pmHoPrepAttLb - pmHoPrepSuccLb
+PSHOPrepFail_Rate_LB = ((pmHoPrepAttLb - pmHoPrepSuccLb)/pmHoPrepAttLb)*100
+PSHOPrepSR_LB = (pmHoPrepSuccLb/pmHoPrepAttLb)*100
+PSHOExeAtt_LB = pmHoExeAttLb
+PSHOExeSucc_LB = pmHoExeSuccLb
+PSHOExeFail_LB = pmHoExeAttLb - pmHoExeSuccLb
+PSHOExeFail_Rate_LB = ((pmHoExeAttLb - pmHoExeSuccLb)/pmHoExeAttLb)*100
+PSHOExeSR_LB = (pmHoExeSuccLb/pmHoExeAttLb)*100
+IFPrepAtt_LB = pmHoPrepAttLteInterFLb
+IFPrepSucc_LB = pmHoPrepSuccLteInterFLb
+IFPrepFail_LB = pmHoPrepAttLteInterFLb - pmHoPrepSuccLteInterFLb
+IFPrepFail_Rate_LB = ((pmHoPrepAttLteInterFLb - pmHoPrepSuccLteInterFLb ) / pmHoPrepAttLteInterFLb)*100
+IFPrepSR_LB = (pmHoPrepSuccLteInterFLb / pmHoPrepAttLteInterFLb) * 100
+IFExeAtt_LB = pmHoExeAttLteInterFLb
+IFExeSucc_LB = pmHoExeSuccLteInterFLb
+IFExeFail_LB = pmHoExeAttLteInterFLb - pmHoExeSuccLteInterFLb
+IFExeFail_Rate_LB = ((pmHoExeAttLteInterFLb - pmHoExeSuccLteInterFLb)/pmHoExeAttLteInterFLb)*100
+IFExeSR_LB = (pmHoExeSuccLteInterFLb/pmHoExeAttLteInterFLb)*100
+UE_Meas_LB = pmLbMeasRepUe
+UE_Qlf_LB = pmLbQualifiedUe
+
+# 2.5 Availability (EUtranCellFDD/TDD)
+#Av_CellAvail = 100 * ( 900 - ( pmCellDowntimeAuto + pmCellDowntimeMan ) ) / 900
+#Av_CellDownMan = 100 * pmCellDowntimeMan / 900
+#Av_CellDownAuto = 100 * pmCellDowntimeAuto / 900
+4_Availability = 100 * (900 - pmCellDowntimeAuto)/900
+5_Availability = 100 * (900 - pmCellDowntimeAuto)/900
+A_Avail = 100 * (900 - pmCellDowntimeAuto)/900
+# Resource usage
+Maximum_UserNumber_RRC = pmRrcConnMax
+MaxUserNumberRRC = pmRrcConnMax
+#Res_AvgNrOfRrcConnectedUsers = pmRrcConnLevSum / pmRrcConnLevSamp
+#Res_PeakNrOfRrcConnectedUsers = pmRrcConnMax / pmRopCounter
+#Res_LicConnectedUsersDistr = pmLicConnectedUsersDistr 
+#Res_AverageLicConnectedUsers = pmLicConnectedUsersActual 
+#Res_TimeCongestionLicConnectedUsers = pmLicConnectedUsersTimeCong 
+#Res_LicConnectedUsersCapacityRatio = pmLicConnectedUsersLicense / pmLicConnectedUsersHardLimit 
+#Res_AvgDlVolPerCell = (pmPdcpVolDlDrb + pmPdcpVolDlSrb) / M 
+#Res_AvgDlVolPerCell = (pmPdcpVolUlDrb + pmPdcpVolUlSrb) / M 
+#Res_AvgNrERabs = pmErabLevSum / pmErabLevSamp 
+#Res_AvgUeSessionTime = pmSessionTimeUe / M 
+#Res_AvgDrbSessionTime = pmSessionTimeDrb / M
+
+# Other
+OutDiscardsLink = pmIfOutDiscardsLink1
+InDiscardsLink = pmIfInDiscardsLink1
+OutErrorLink = pmIfOutErrorsLink1
+InErrorLink = pmIfInErrorsLink1
+OutDiscardsLinkBB = ifOutDiscards
+InDiscardsLinkBB = ifInDiscards
+OutErrorLinkBB = ifOutErrors
+InErrorLinkBB = ifInErrors
+Discard_link = pmIfInDiscardsLink1 + pmIfOutDiscardsLink1 + pmIfOutErrorsLink1 + pmIfInErrorsLink1
+Discard_linkBB = ifOutDiscards + ifInDiscards + ifOutErrors + ifInErrors
+TN_PacketLoss = 100 * pmSctpStatRetransChunks / (pmSctpStatSentChunks + pmSctpStatRetransChunks)
+TN_PacketLossBB = 100 * sctpAssocRtxChunks / (sctpAssocOutDataChunks + sctpAssocRtxChunks)
+In_PacketErrRatio = 100*(pmDot1qTpVlanPortInDiscardsLink1 + pmIfInErrorsLink1 + pmIfInUnknownProtosLink1)/(pmDot1qTpVlanPortInDiscardsLink1 + pmIfInErrorsLink1 + pmIfInUnknownProtosLink1 + pmIfInDiscardsLink1 + pmIfInBroadcastPktsLink1 + pmIfInMulticastPktsLink1 + (pmIfInUcastPktsLink1*1000))
+In_PacketErrRatioBB = 100*(IfInErrors + ifInUnknownProtos + ifInUnknownTags)/(IfInErrors + ifInUnknownProtos + ifInUnknownTags + IfInDiscards + ifHCInBroadcastPkts + ifHcInMulticastPkts + ifHcInUcastPkts)
+Out_PacketErrRatio = 100 * (pmIfOutDiscardsLink1 + pmIfOutErrorsLink1) / (pmIfOutDiscardsLink1 + pmIfOutErrorsLink1 + pmIfOutBroadcastPktsLink1 + pmIfOutMulticastPktsLink1 + (pmIfOutUcastPktsLink1 * 1000))
+Out_PacketErrRatioBB = 100*(ifOutDiscards + IfOutErrors)/(ifOutDiscards + IfInErrors  + ifHCOutBroadcastPkts + ifHCOutMulticastPkts + ifHCOutUcastPkts)
+#Oth_RrcSecFailIntegrity = pmRrcSecFailIntegrity
+#Oth_RrcSecFailUnexptectedMsg = pmRrcSecFailUnexpectedMsg
+#Oth_DrbVsUeSessionTimeRatio = pmSessionTimeDrb / pmSessionTimeUe
+#Oth_Msg3RachRrcConsistencyCheck = pmRrcConnEstabAtt / pmRaSuccCbra
+#Oth_UeCtxtEstablishmentAndReleaseConsistency = (pmUeCtxtRelMme + pmUeCtxtRelNormalEnb +  pmUeCtxtRelAbnormalEnb + pmUeCtxtRelSCCdma + pmUeCtxtRelSCEUtra + pmUeCtxtRelSCWcdma) / pmUeCtxtEstabSucc
+
+# IP TransportNetwork
+#Ip_GigaPortIn =  8 * ((pmIfInOctetsLink1Hi* 2147483648 + pmIfInOctetsLink1Lo + pmIfInOctetsLink2Hi * 2147483648 + pmIfInOctetsLink2Lo ) / (pmRopCounter * 900 * 1000000 ))
+#Ip_GigaPortOut = 8 * ((pmIfOutOctetsLink1Hi* 2147483648 + pmIfOutOctetsLink1Lo + pmIfOutOctetsLink2Hi * 2147483648 + pmIfOutOctetsLink2Lo ) / (pmRopCounter * 900 * 1000000 ))
+#Ip_GigaPortTot = Ip_GigaPortIn + Ip_GigaPortOut 
+#Ip_SctpPacketLossRatio = 100 * pmSctpStatRetransChunks / (pmSctpStatSentChunks + pmSctpStatRetransChunks) 
+
+#Note: pmRopCounter can only be used on reports that are aggregated on ManagedElement 
+#From 44/1553-HSC 105 50/1 :
+#Ip_IpLayerMbpsOut = 8 * pmIpIfStatsHCOutOctets / (1000000 * 900)
+#Ip_IpLayerMbpsIn = 8 * pmIpIfStatsHCInOctets / (1000000 * 900)
+#Ip_EthLayerMbpsOut = (8 * pmIpIfStatsHCOutOctets + 336 * pmIpIfStatsHCOutTransmits) / (1000000 * 900)
+#Ip_EthLayerMbpsIn = (8 * pmIpIfStatsHCInOctets + 336 * pmIpIfStatsHCInReceives) / (1000000 * 900)
+
+
+#Ret_ErabDrop per QCI
+#De_ErabRelAbnormalEnbActQci = decompressArray(pmErabRelAbnormalEnbActQci)
+#De_ErabRelAbnormalEnbQci = decompressArray(pmErabRelAbnormalEnbQci)
+#De_ErabRelAbnormalMmeActQci = decompressArray(pmErabRelAbnormalMmeActQci)
+#De_ErabRelMmeQci = decompressArray(pmErabRelMmeQci)
+#De_ErabRelNormalEnbQci = decompressArray(pmErabRelNormalEnbQci)
+#Ret_ERabDrop_Qci_0 = 100 * ( @{De_ErabRelAbnormalEnbActQci}[0] + @{De_ErabRelAbnormalEnbQci}[0] ) / ( @{De_ErabRelAbnormalMmeActQci}[0] + @{De_ErabRelMmeQci}[0] + @{De_ErabRelNormalEnbQci}[0] )
+#Ret_ERabDrop_Qci_1 = 100 * ( @{De_ErabRelAbnormalEnbActQci}[1] + @{De_ErabRelAbnormalEnbQci}[1] ) / ( @{De_ErabRelAbnormalMmeActQci}[1] + @{De_ErabRelMmeQci}[1] + @{De_ErabRelNormalEnbQci}[1] )
+#Ret_ERabDrop_Qci_2 = 100 * ( @{De_ErabRelAbnormalEnbActQci}[2] + @{De_ErabRelAbnormalEnbQci}[2] ) / ( @{De_ErabRelAbnormalMmeActQci}[2] + @{De_ErabRelMmeQci}[2] + @{De_ErabRelNormalEnbQci}[2] )
+#Ret_ERabDrop_Qci_3 = 100 * ( @{De_ErabRelAbnormalEnbActQci}[3] + @{De_ErabRelAbnormalEnbQci}[3] ) / ( @{De_ErabRelAbnormalMmeActQci}[3] + @{De_ErabRelMmeQci}[3] + @{De_ErabRelNormalEnbQci}[3] )
+#Ret_ERabDrop_Qci_4 = 100 * ( @{De_ErabRelAbnormalEnbActQci}[4] + @{De_ErabRelAbnormalEnbQci}[4] ) / ( @{De_ErabRelAbnormalMmeActQci}[4] + @{De_ErabRelMmeQci}[4] + @{De_ErabRelNormalEnbQci}[4] )
+#Ret_ERabDrop_Qci_5 = 100 * ( @{De_ErabRelAbnormalEnbActQci}[5] + @{De_ErabRelAbnormalEnbQci}[5] ) / ( @{De_ErabRelAbnormalMmeActQci}[5] + @{De_ErabRelMmeQci}[5] + @{De_ErabRelNormalEnbQci}[5] )
+#Ret_ERabDrop_Qci_6 = 100 * ( @{De_ErabRelAbnormalEnbActQci}[6] + @{De_ErabRelAbnormalEnbQci}[6] ) / ( @{De_ErabRelAbnormalMmeActQci}[6] + @{De_ErabRelMmeQci}[6] + @{De_ErabRelNormalEnbQci}[6] )
+#Ret_ERabDrop_Qci_7 = 100 * ( @{De_ErabRelAbnormalEnbActQci}[7] + @{De_ErabRelAbnormalEnbQci}[7] ) / ( @{De_ErabRelAbnormalMmeActQci}[7] + @{De_ErabRelMmeQci}[7] + @{De_ErabRelNormalEnbQci}[7] )
+#Ret_ERabDrop_Qci_8 = 100 * ( @{De_ErabRelAbnormalEnbActQci}[8] + @{De_ErabRelAbnormalEnbQci}[8] ) / ( @{De_ErabRelAbnormalMmeActQci}[8] + @{De_ErabRelMmeQci}[8] + @{De_ErabRelNormalEnbQci}[8] )
+
+#CQI
+UeRepCqi = pmRadioUeRepCqiDistr
+HomUeRepCqi = pmRadioHomUeRepCqiDistr
+UeRepCqi_all = Sum(pmRadioUeRepCqiDistr) 
+HomUeRepCqi_all = Sum(pmRadioHomUeRepCqiDistr)
+UeRepCqi_7 = @{UeRepCqi}[7] + @{UeRepCqi}[8] + @{UeRepCqi}[9] + @{UeRepCqi}[10] + @{UeRepCqi}[11] + @{UeRepCqi}[12] + @{UeRepCqi}[13] + @{UeRepCqi}[14] + @{UeRepCqi}[15]
+HomUeRepCqi_4 = @{HomUeRepCqi}[4] + @{HomUeRepCqi}[5] + @{HomUeRepCqi}[6] + @{HomUeRepCqi}[7] + @{HomUeRepCqi}[8] + @{HomUeRepCqi}[9] + @{HomUeRepCqi}[10] + @{HomUeRepCqi}[11] + @{HomUeRepCqi}[12] + @{HomUeRepCqi}[13] + @{HomUeRepCqi}[14] + @{HomUeRepCqi}[15]
+J_CQI_7 = 100 * ((UeRepCqi_7 + HomUeRepCqi_4) / (UeRepCqi_all + HomUeRepCqi_all))
+
+#CA
+UEDLCaCapab = pmCaCapableDlSum
+UEULCaCapab = pmCaCapableUlSum
+UEFDDTDDCaCapab = pmCaCapableDlFddTddSum
+UEDLCaCapab_all = Sum(pmCaCapableDlSum)
+UEULCaCapab_all = Sum(pmCaCapableUlSum)
+UEFDDTDDCaCapab_all = Sum(pmCaCapableDlFddTddSum)
+UEDLCaAct = pmCaActivatedDlSum
+UEULCaSch = pmCaScheduledUlSum
+UEDLCaActIeNb = pmCaActDlIeNbSum
+UECaFDDTDD = pmCaActivatedDlFddTddSum
+UEDL_NoCC = (@{UEDLCaCapab}[0] / UEDLCaCapab_all) * 100
+UEDL_2CC = (@{UEDLCaCapab}[1] / UEDLCaCapab_all) * 100
+UEDL_3CC = (@{UEDLCaCapab}[2] / UEDLCaCapab_all) * 100
+UEDL_4CC = (@{UEDLCaCapab}[3] / UEDLCaCapab_all) * 100
+UEDL_5CC = (@{UEDLCaCapab}[4] / UEDLCaCapab_all) * 100
+UEUL_NoCC = (@{UEULCaCapab}[0] / UEULCaCapab_all) * 100
+UEUL_2CC = (@{UEULCaCapab}[1] / UEULCaCapab_all) * 100
+UEUL_3CC = (@{UEULCaCapab}[2] / UEULCaCapab_all) * 100
+UEUL_4CC = (@{UEULCaCapab}[3] / UEULCaCapab_all) * 100
+UEUL_5CC = (@{UEULCaCapab}[4] / UEULCaCapab_all) * 100
+UEFDDTDD_2CC = (@{UEFDDTDDCaCapab}[0] / UEFDDTDDCaCapab_all) * 100
+UEFDDTDD_3CC = (@{UEFDDTDDCaCapab}[1] / UEFDDTDDCaCapab_all) * 100
+UEFDDTDD_4CC = (@{UEFDDTDDCaCapab}[2] / UEFDDTDDCaCapab_all) * 100
+UEFDDTDD_5CC = (@{UEFDDTDDCaCapab}[3] / UEFDDTDDCaCapab_all) * 100
+M_DLCA_2CC = @{UEDLCaAct}[1]
+N_DLCA_3CC = @{UEDLCaAct}[2]
+DLCA_4CC = @{UEDLCaAct}[3]
+DLCA_5CC = @{UEDLCaAct}[4]
+ULCA_2CC = @{UEULCaSch}[1]
+IeNBDLCA_2CC = @{UEDLCaActIeNb}[1]
+IeNBDLCA_3CC = @{UEDLCaActIeNb}[2]
+L_1FDD_1TDD = @{UECaFDDTDD}[4] 
+1FDD_2TDD = @{UECaFDDTDD}[5]
