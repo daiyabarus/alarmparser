@@ -1,7 +1,7 @@
 #!/bin/bash
 # //////////////////////////////////////////////////////////////////////// #
 # Application Name	: alarmparser
-# Version						: v.1.0.4
+# Version						: v.1.1.1
 # Author 						: daiyabarus@telco-indonesia.com
 # Date 							: May 12, 2020
 # Location 					    : Uruk Gedang, Neverland
@@ -17,7 +17,7 @@ creationdate="May 12, 2020"
 updatedate="May 14, 2020"
 description="Retrieve cellstatus, vswr, alarm,  packetloss, RSSI"
 comment="Don't panic! please report if You find a bug."
-version=1.0.4
+version=1.1.1
 FOLCURRENT=`pwd`
 options=":f:a:cvh"
 
@@ -164,7 +164,7 @@ drawline "Mission Start "
 drawline2 "Collecting cellstatus, vswr, alarm,  packetloss, RSSI"
 #Define Folder
 mkdir ~/.gconfd/seaplane/alarmparser/data
-nohup /opt/ericsson/amos/moshell/mobatch -p 20 -t 120 ${FILEDATA} 'lt all;rbs;rbs;run ~/.gconfd/seaplane/alarmparser/cellstatus;q;' mb_avrets
+nohup /opt/ericsson/amos/moshell/mobatch -p 20 -t 15 ${FILEDATA} 'lt all;rbs;rbs;run ~/.gconfd/seaplane/alarmparser/cellstatus;q;' mb_avrets
 
 ## egrep
 printf '\t\e[1;34m%s\e[0m\n' "- Parsing log..."
@@ -174,9 +174,11 @@ dt=`date '+%Y%m%d_%H.%M'`
 cd ~/.gconfd/seaplane/alarmparser/data/
 #egrep 'RRUS' *.log | grep '.*DD' | nawk '{gsub(".log:"," ");print $1";" $19";"$20";"$10}' | sed -e 's/FDD=//g' | sed -e 's/TDD=//g' | sed -e 's/GT=//g' | sed -e 's/;;/;/g' | dos2unix > vswr.txt
 egrep 'EUtranCell.DD' *.log | awk '{print $7";"$4";"$6}' | sed -e 's/(//g' | sed -e 's/)//g' | sed -e 's/ENodeBFunction=1,EUtranCell.DD=//g' | dos2unix > cellstatus.txt
-egrep 'Transport=1 ' *.log | nawk '{gsub(".log:"," ");print $1";"$4}' | cut -d';' -f1,2,3,4,5,6,7 | dos2unix > packetloss.txt
-egrep '^2020-' *.log | grep -v 'Transport=1' | nawk '{gsub(".log:"," ");print $1";"$3";"$4}' | dos2unix > rssi.txt
+egrep 'TN_PacketLossBB ' *.log | nawk '{gsub(".log:"," ");print $1";"$4}' | cut -d';' -f1,2,3,4,5,6,7 | dos2unix > packetloss.txt
+egrep '^2020-' *.log | grep -v 'Transport=1' | grep -v 'TwampTestSession=DSCP_DATA'| grep -v 'TN_PacketLossBB' | nawk '{gsub(".log:"," ");print $1";"$3";"$4}' | dos2unix > rssi.txt
 egrep 'rtt ' *.log | nawk '{gsub(".log:"," ");print $1";"$5}' | sed -e 's/\//;/g' | dos2unix > ping.txt
+egrep 'TwampTestSession=DSCP_DATA' *.log | grep -v 'ping' | grep -v '(' | grep -v 'gzip' | nawk '{gsub(".log:"," ");print $1";"$4";"$5";"$6";"$7";"$8}' | dos2unix > packettwamp.txt
+egrep 'Router=vr_LTE_Traffic,TwampInitiator=1' *.log | grep -v 'ping' | nawk '{gsub(".log:"," ");print $1";"$4";"$13}' | sed -e 's/(//g' | sed -e 's/)//g' | dos2unix > twampstatus.txt 
 ggrep -A 3 'Managed Object Instance : ' *.log | nawk '{gsub(".log:"," ");print}' | sed -e 's/.log-/;/g' | sed -e 's/:/;/g' | sed -e 's/ Managed Object Instance /;Managed Object Instance /g' | sed -e 's/ManagedElement=//g' | dos2unix > alarm.txt
 #add header
 gawk 'NR==1{1;print "SECTORID;Adm State;Op. State"}1' cellstatus.txt > cellstatus_${dt}.csv
@@ -185,6 +187,8 @@ gawk 'NR==1{1;print "NEID;Problem;NotificationId"}1' alarm.txt > alarm_${dt}.csv
 gawk 'NR==1{1;print "NEID;min;avg;max;mdev"}1' ping.txt > ping_${dt}.csv
 gawk 'NR==1{1;print "NEID;TN_PacketlossBB"}1' packetloss.txt > packetloss_${dt}.csv
 gawk 'NR==1{1;print "NEID;SECTORID;CI;VSWR1;VSWR2"}1' vswr.txt > vswr_${dt}.csv
+gawk 'NR==1{1;print "NEID;administrativeState;operationalState"}1' twampstatus.txt > twampstatus_${dt}.csv
+gawk 'NR==1{1;print "TWAMP_Latency_Avg;TWAMP_PL_Avg;TWAMP_PL_Max;TWAMP_PL_Min;TWAMP_Packet_Loss_Fwd;TWAMP_Packet_Loss_Rev"}1' packettwamp.txt > packettwamp_${dt}.csv
 rm *.txt
 #ggrep -A 3 'Managed Object Instance : ' *.log | nawk '{gsub(".log:"," ");print}' | sed -e 's/.log-/;/g' | sed -e 's/:/;/g' | sed -e 's/ Managed Object Instance /;Managed Object Instance /g' | sed -e 's/ManagedElement=//g' | dos2unix > alarm.txt
 #ggrep -A 3 'Specific Problem : ' *.log | nawk '{gsub(".log:"," ");print}' | sed -e 's/.log-/;/g' | sed -e 's/:/;/g' | sed -e 's/ Specific Problem /;Specific Problem /g'

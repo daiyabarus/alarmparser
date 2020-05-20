@@ -6,12 +6,14 @@ ma pingoam Transport=1,Router=vr_OAM
 get Transport=1,Router=vr_OAM,RouteTableIPv4Static=1,Dst=1,NextHop=1 address$ > $ipvrOAM
 l+ ~/.gconfd/seaplane/alarmparser/data/$nodename.log
 st cell
-alc
-pmr -c ~/.gconfd/seaplane/lte.counter/page -f ~/.gconfd/seaplane/lte.counter/counter -m 1 -tz +7 -r 2,3
+invxrfc
+ala
+hget ,TwampTestSession=DSCP
+pmr -c ~/.gconfd/seaplane/lte.counter/page -f ~/.gconfd/seaplane/lte.counter/counter -m 12 -tz +7 -r 2,3,4
 mcc pingtransport ping $ipvrTraffic -c 10
 mcc pingoam ping $ipvrOAM -c 10
 l-
 mr pingtransport
 mr pingoam
-q
+q!!
 
