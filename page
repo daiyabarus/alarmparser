@@ -9,10 +9,16 @@ X mo (Transport=1)
 #X mo ,EUtranCell.DD=([^\s,=\t]+)
 Y time d
 Z counter TN_PacketLossBB
-precision 4
+precision 2
 
 ReportName Interference Performance, Hour by Hour
 X counter ul_interference_pwr
 Y time d
 Z mo ,EUtranCell.DD=([^\s,=\t]+)
-precision 1
+precision 2
+
+ReportName Transmision Integrity Baseband TWAMP, Hour by Hour
+X counter TWAMP_Packet_Loss_Fwd,TWAMP_Packet_Loss_Rev,TWAMP_PL_Max,TWAMP_PL_Avg,TWAMP_PL_Min,TWAMP_Latency_Avg
+Y time d
+Z mo (TwampTestSession=DSCP_DATA)
+precision 2
