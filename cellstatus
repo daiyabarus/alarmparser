@@ -4,12 +4,14 @@ ma pingtransport transport=1,router=vr_lte_traffic
 get Transport=1,Router=vr_LTE_Traffic,RouteTableIPv4Static=1,Dst=1,NextHop=1 address$ > $ipvrTraffic
 ma pingoam Transport=1,Router=vr_OAM
 get Transport=1,Router=vr_OAM,RouteTableIPv4Static=1,Dst=1,NextHop=1 address$ > $ipvrOAM
+$date = `date +%Y%m%d`
 l+ ~/.gconfd/seaplane/alarmparser/data/$nodename.log
 st cell
 invxrfc
-ala
+alt
 hget ,TwampTestSession=DSCP
-pmr -c ~/.gconfd/seaplane/lte.counter/page -f ~/.gconfd/seaplane/lte.counter/counter -m 12 -tz +7 -r 2,3,4
+pst EventJob ACTIVE
+pmr -c ~/.gconfd/seaplane/lte.counter/page -f ~/.gconfd/seaplane/lte.counter/counter -s $date -e $date -tz +7 -r 2,3,4
 mcc pingtransport ping $ipvrTraffic -c 10
 mcc pingoam ping $ipvrOAM -c 10
 l-

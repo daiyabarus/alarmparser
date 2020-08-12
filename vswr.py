@@ -358,7 +358,7 @@ class InvxrParser:
                                 dict_d[sitename + ";" + sector1 + ";" + cellid1] = vswr
                                 dict_d[sitename + ";" + sector2 + ";" + cellid2] = vswr
 
-        file_name = os.path.join(self.get_target_folder(), "vswr.txt")
+        file_name = os.path.join(self.get_target_folder(), "vswr_temp.txt")
         if os.path.exists(file_name):
             os.remove(file_name)
         with io.open(file_name, 'a', newline='') as fp:
